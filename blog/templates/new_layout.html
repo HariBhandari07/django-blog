@@ -1,0 +1,217 @@
+{% load static %}
+{% load thumbnail %} {# we have installed sorl-thumbnail,  #}
+{% load bootstrap %} {# from django bootstrap form #}
+<!DOCTYPE html>
+<html>
+<title>BEARDED's BLOG</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<style>
+    body, h1, h2, h3, h4, h5 {
+        font-family: "Raleway", sans-serif
+    }
+</style>
+<body class="w3-light-grey">
+
+<!-- w3-content defines a container for fixed size centered content,
+and is wrapped around the whole page content, except for the footer in this example -->
+<div class="w3-content" style="max-width:1400px">
+
+    <!-- Header -->
+    <header class="w3-container w3-center w3-padding-32">
+        <h1><b>BEARDED's BLOG</b></h1>
+        <p>Welcome to the blog of <span class="w3-tag">Bearded Bahun</span></p>
+    </header>
+
+    <!-- Grid -->
+    <div class="w3-row">
+
+        <!-- Blog entries -->
+        <div class="w3-col l8 s12">
+            {% for blog in blogs %}
+                <!-- Blog entry -->
+                <div class="w3-card-4 w3-margin w3-white">
+                    {% thumbnail blog.image "700x220" crop="center" as im %}
+                        {# from sorl thumbnail, dont forget to edit blog.image #}
+                        <img src="{{ im.url }}" alt="{{ blog.title }} style=" width=100%">
+                    {% endthumbnail %}
+                    <div class="w3-container">
+                        <h3><b>{{ blog.title }}</b></h3>
+                        <h5>{{ blog.author }} <span class="w3-opacity">{{ blog.pub_date }}</span></h5>
+                    </div>
+
+                    <div class="w3-container">
+                        {{ blog.content | safe }}
+                        <div class="w3-row">
+                            <div class="w3-col m8 s12">
+                                <p>
+                                    <button class="w3-button w3-padding-large w3-white w3-border" data-toggle="modal"
+                                            data-target="#modal-{{ blog.id }}"><b>Write Comment</b>
+                                        {# here myModal and modal code is copied from modal code below #}
+                                    </button>
+                                </p>
+                            </div>
+                            <div class="w3-col m4 w3-hide-small">
+                                <p><span class="w3-padding-large w3-right"><b>Comments  </b> <span
+                                        class="w3-tag">{{ blog.comment_set.count }}</span></span></p>
+                                {# for _set function we need relation one to one, many to one ,so on #}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <!-- Button trigger modal -->
+                {#                <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">#}
+                {#                    Launch demo modal#}
+                {#                </button>#} {# this is not needed since we have our own button #}
+
+                <!-- Modal -->
+                <div class="modal fade" id="modal-{{ blog.id }}" tabindex="-1" role="dialog"
+                     aria-labelledby="myModalLabel"> {# here we edited modal id #}
+                    <div class="modal-dialog modal-lg" role="document">
+                        <form method="POST"> {# dont forget to wrap this content with form tag #}
+                            {% csrf_token %} {# without this we can't submit form #}
+                            <input type="hidden" name="blog_id" value="{{ blog.id }}">
+                            {# since we have two blogs, for separating blogs we provide blog id, and also we are hiding input that user types in browser #}
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                            aria-hidden="true">&times;</span></button>
+                                    <h4 class="modal-title" id="myModalLabel">Comments</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="comments-list">
+                                                {% for comment in blog.comment_set.all %}
+                                                    <div class="media">
+
+                                                        <div class="media-body">
+
+                                                            <h4 class="media-heading user_name">{{ comment.name }}</h4>
+                                                            {{ comment.message }}
+
+                                                            <p>
+                                                                <small><a href="">Like</a> - <a href="">Share</a>
+                                                                </small>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">{{ form|bootstrap_horizontal }}</div>
+                                        {# from django bootstrap form documentation #}
+
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+
+
+            <!-- END BLOG ENTRIES -->
+        </div>
+
+        <!-- Introduction menu -->
+        <div class="w3-col l4">
+            <!-- About Card -->
+            <div class="w3-card w3-margin w3-margin-top">
+                <img src="{% static 'img/profile.jpeg' %}" style="width:100%">
+                <div class="w3-container w3-white">
+                    <h4><b>My Name</b></h4>
+                    <p>Just me, myself and I, exploring the universe of uknownment. I have a heart of love and a
+                        interest of lorem ipsum and mauris neque quam blog. I want to share my world with you.</p>
+                </div>
+            </div>
+            <hr>
+
+            <!-- Posts -->
+            <div class="w3-card w3-margin">
+                <div class="w3-container w3-padding">
+                    <h4>Popular Posts</h4>
+                </div>
+                <ul class="w3-ul w3-hoverable w3-white">
+                    {% for popular_post in popular_posts %}
+                        <li class="w3-padding-16">
+                            {#                            <img src="/w3images/workshop.jpg" alt="Image" class="w3-left w3-margin-right"#}
+                            {#                                 style="width:50px">#}
+                            <span class="w3-large">{{ popular_post.title }}</span><br>
+                            {% thumbnail popular_post.image "50x50" crop="center" as im %}
+                                {# dont forget popular_post.image #}
+                                <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}">
+                            {% endthumbnail %}
+                            <span>{{ popular_post.author }}</span>
+                        </li>
+                    {% endfor %}
+
+
+                </ul>
+            </div>
+            <hr>
+
+            <!-- Labels / tags -->
+            {#            <div class="w3-card w3-margin">#}
+            {#                <div class="w3-container w3-padding">#}
+            {#                    <h4>Tags</h4>#}
+            {#                </div>#}
+            {#                <div class="w3-container w3-white">#}
+            {#                    <p><span class="w3-tag w3-black w3-margin-bottom">Travel</span> <span#}
+            {#                            class="w3-tag w3-light-grey w3-small w3-margin-bottom">New York</span> <span#}
+            {#                            class="w3-tag w3-light-grey w3-small w3-margin-bottom">London</span>#}
+            {#                        <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">IKEA</span> <span#}
+            {#                                class="w3-tag w3-light-grey w3-small w3-margin-bottom">NORWAY</span> <span#}
+            {#                                class="w3-tag w3-light-grey w3-small w3-margin-bottom">DIY</span>#}
+            {#                        <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">Ideas</span> <span#}
+            {#                                class="w3-tag w3-light-grey w3-small w3-margin-bottom">Baby</span> <span#}
+            {#                                class="w3-tag w3-light-grey w3-small w3-margin-bottom">Family</span>#}
+            {#                        <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">News</span> <span#}
+            {#                                class="w3-tag w3-light-grey w3-small w3-margin-bottom">Clothing</span> <span#}
+            {#                                class="w3-tag w3-light-grey w3-small w3-margin-bottom">Shopping</span>#}
+            {#                        <span class="w3-tag w3-light-grey w3-small w3-margin-bottom">Sports</span> <span#}
+            {#                                class="w3-tag w3-light-grey w3-small w3-margin-bottom">Games</span>#}
+            {#                    </p>#}
+            {#                </div>#}
+            {#            </div>#}
+
+            <!-- END Introduction Menu -->
+        </div>
+
+        <!-- END GRID -->
+    </div>
+    <br>
+
+    <!-- END w3-content -->
+</div>
+
+<!-- Footer -->
+<footer class="w3-container w3-dark-grey w3-padding-32 w3-margin-top">
+
+    <a class="w3-button w3-black {% if not blogs.has_previous %} w3-disabled {% endif %} w3-padding-large w3-margin-bottom"
+            {% if  blogs.has_previous %} href="?page={{ blogs.previous_page_number }}" {% endif %}>Previous</a>
+
+    <a class="w3-button w3-black {% if not blogs.has_next %} w3-disabled {% endif %} w3-padding-large w3-margin-bottom"
+            {% if  blogs.has_next %} href="?page={{ blogs.next_page_number }}" {% endif %}>Next »</a>
+
+    <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">BahunCompany</a></p>
+
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+{# our js in bootstrap requires jquery, so we copied jquery 2.1.3 cdn. Here we don't use static as we are using cdn and not our directory files #}
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+{#here static is function which point to static dir #}
+
+</body>
+</html>
